@@ -14,6 +14,26 @@ object NativeKeys {
     val nativeBuild = taskKey[File]("Invoke native build.")
 }
 
+//windows, as usual, needs special treatment
+object CygwinUtil {
+
+  def onCygwin: Boolean = {
+    val uname = Process("uname").lines.headOption
+    uname map {
+      _.toLowerCase.startsWith("cygwin")
+    } getOrElse {
+      false
+    }
+  }
+
+  def toUnixPath(path: String) = if (onCygwin) {
+    Process(s"cygpath ${path}").lines.head
+  } else {
+    path
+  }
+
+}
+
 object NativeDefaults {
     import NativeKeys._
 
@@ -29,10 +49,12 @@ object NativeDefaults {
         val build = nativeBuildDirectory.value
         val out = nativeOutputDirectory.value
 
+        val cygOut = CygwinUtil.toUnixPath(out.getAbsolutePath)
+
         val configure = Process(
-            "./configure " +
-            "--prefix=" + out.getAbsolutePath + " " +
-            "--libdir=" + out.getAbsolutePath + " " +
+            "sh ./configure " + //"sh" is required under cygwin
+            "--prefix=" + cygOut + " " +
+            "--libdir=" + cygOut + " " +
             "--disable-versioned-lib", //Disable producing versioned library files, not needed for fat jars.
             build)
 

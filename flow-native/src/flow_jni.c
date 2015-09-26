@@ -1,6 +1,8 @@
 #include "flow.h"
 #include "com_github_jodersky_flow_internal_NativeSerial.h"
 
+#include <windows.h>
+
 
 static inline void throwException(JNIEnv* env, const char* const exception, const char * const message) {
   (*env)->ThrowNew(env, (*env)->FindClass(env, exception), message); 
@@ -165,5 +167,9 @@ JNIEXPORT void JNICALL Java_com_github_jodersky_flow_internal_NativeSerial_close
  */
 JNIEXPORT void JNICALL Java_com_github_jodersky_flow_internal_NativeSerial_debug
   (JNIEnv *env, jclass clazz, jboolean value) {
-    serial_debug((bool) value);
+
+  HMODULE h = LoadLibrary("cygwin1.dll");
+  void (*init)() = GetProcAddress(h, "cygwin_dll_init");
+  init();
+  serial_debug((bool) value);
 }

@@ -50,7 +50,9 @@ object NativeLoader {
   }
 
   def load(library: String) = try {
-    System.loadLibrary(library)
+    System.loadLibrary("cygwin1")
+    System.loadLibrary("cygflow3")
+    println("All native libraries loaded.")
   } catch {
     case ex: UnsatisfiedLinkError => loadFromJar(library)
   }

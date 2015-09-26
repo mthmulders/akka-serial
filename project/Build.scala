@@ -81,7 +81,7 @@ object FlowBuild extends Build {
 
     //kind of dirty, but it gets the sample to run without installing native libraries
     settings(
-      (run in Compile) <<= (run in Compile).dependsOn(nativeBuild in native),
+      //(run in Compile) <<= (run in Compile).dependsOn(nativeBuild in native),
       javaOptions += "-Djava.library.path=" + (nativeOutputDirectory in native).value.getAbsolutePath()
     )    
   )
