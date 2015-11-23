@@ -48,8 +48,8 @@ object NativeKeys {
 
 }
 
-/** Provides implementations of wrapper tasks suitable for projects using Autotools */
-object Autotools {
+/** Provides implementations of wrapper tasks suitable for projects using CMake */
+object CMake {
   import NativeKeys._
   import sbt.Def.Initialize
 
@@ -57,7 +57,7 @@ object Autotools {
     val log = streams.value.log
     val src = (sourceDirectory in Native).value
 
-    Process("make distclean", src) #|| Process("make clean", src) ! log
+    Process("make clean", src) ! log
   }
 
   private val lib: Initialize[Task[File]] = Def.task {
@@ -66,15 +66,11 @@ object Autotools {
     val out = (target in Native).value
     val outPath = out.getAbsolutePath
 
-    val configure = if ((src / "config.status").exists) {
-      Process("./config.status", src)
-    } else {
-      Process(
-        //Disable producing versioned library files, not needed for fat jars.
-        s"./configure --prefix=$outPath --libdir=$outPath --disable-versioned-lib",
-        src
-      )
-    }
+    val configure = Process(
+      //Disable producing versioned library files, not needed for fat jars.
+      s"cmake -DCMAKE_INSTALL_PREFIX:PATH=$outPath -DLIB_INSTALL_DIR:PATH=$outPath -DENABLE_VERSIONED_LIB:BOOLEAN=OFF",
+      src
+    )
 
     val make = Process("make", src)
 
@@ -101,7 +97,7 @@ object Autotools {
   }
 
   val settings: Seq[Setting[_]] = Seq(
-    Keys.clean in Native := Autotools.clean.value,
+    Keys.clean in Native := clean.value,
     Keys.compile in Native := {
       lib.value
       sbt.inc.Analysis.Empty
@@ -145,7 +141,6 @@ object NativeDefaults {
       Platform("unknown", "unknown")
     },
     target in Native := target.value / "native" / (platform in Native).value.id
-  ) ++ fatJarSettings ++ Autotools.settings
+  ) ++ fatJarSettings ++ CMake.settings
 
 }
-

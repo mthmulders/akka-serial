@@ -13,7 +13,7 @@ TEMPDIR=`pwd`/out
 
 mkdir ${TEMPDIR} && \
 cd .. && \
-./configure --libdir=${LIBDIR} && \
+cmake -DLIB_INSTALL_DIR:PATH=${LIBDIR} . && \
 make && \
 DESTDIR=${TEMPDIR} make install && \
 productbuild --root=pkg ${PACKAGE}.pkg
